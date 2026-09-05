@@ -1,0 +1,158 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id              String                  @id @default(uuid())
+  name            String
+  email           String                  @unique
+  passwordHash    String
+  role            String                  @default("CITIZEN") // CITIZEN or ADMIN
+  neighborhood    String?
+  civicPoints     Int                     @default(0)
+  createdAt       DateTime                @default(now())
+  updatedAt       DateTime                @updatedAt
+
+  reports         RoadReport[]            @relation("UserReports")
+  notifications   Notification[]
+  upvotes         Upvote[]
+  pointTransactions CivicPointTransaction[]
+}
+
+model RoadReport {
+  id                  String               @id @default(uuid())
+  ticketId            String               @unique // e.g. RPT-1042
+  citizenId           String
+  imageUrl            String
+  latitude            Float
+  longitude           Float
+  address             String?
+  description         String?
+  status              String               @default("SUBMITTED") // SUBMITTED, YOLO_VERIFIED, DEDUPLICATED, REPAIR_SCHEDULED, REPAIR_IN_PROGRESS, AWAITING_VERIFICATION, RESOLVED
+  severity            String?              // LOW, MODERATE, HIGH
+  confidenceScore     Float?
+  boundingBoxCoverage Float?
+  upvoteCount         Int                  @default(0)
+  crowdUrgency        String               @default("LOW")
+  priorityScore       Float?
+  priorityLevel       String?              // LOW, MODERATE, HIGH
+  duplicateGroupId    String?
+  createdAt           DateTime             @default(now())
+  updatedAt           DateTime             @updatedAt
+  resolvedAt          DateTime?
+
+  citizen             User                 @relation("UserReports", fields: [citizenId], references: [id])
+  duplicateGroup      DuplicateGroup?      @relation(fields: [duplicateGroupId], references: [id])
+  detection           Detection?
+  repairAssignment    RepairAssignment?
+  repairVerification  RepairVerification?
+  notifications       Notification[]
+  upvotes             Upvote[]
+  pointTransactions   CivicPointTransaction[]
+}
+
+model Detection {
+  id            String      @id @default(uuid())
+  reportId      String      @unique
+  modelName     String      @default("YOLOv8-Mock")
+  confidence    Float
+  x             Float
+  y             Float
+  width         Float
+  height        Float
+  imageWidth    Float
+  imageHeight   Float
+  createdAt     DateTime    @default(now())
+
+  report        RoadReport  @relation(fields: [reportId], references: [id])
+}
+
+model DuplicateGroup {
+  id               String       @id @default(uuid())
+  primaryReportId  String       @unique
+  radiusMeters     Float        @default(10.0)
+  reportCount      Int          @default(1)
+  crowdUrgency     String       @default("LOW")
+  createdAt        DateTime     @default(now())
+  updatedAt        DateTime     @updatedAt
+
+  reports          RoadReport[]
+}
+
+model RepairAssignment {
+  id             String      @id @default(uuid())
+  reportId       String      @unique
+  assignedBy     String
+  contractorName String
+  scheduledDate  DateTime
+  status         String      @default("SCHEDULED") // SCHEDULED, IN_PROGRESS, COMPLETED
+  notes          String?
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+
+  report         RoadReport  @relation(fields: [reportId], references: [id])
+}
+
+model RepairVerification {
+  id                     String      @id @default(uuid())
+  reportId               String      @unique
+  imageUrl               String
+  residualDefectDetected Boolean
+  confidence             Float
+  completionScore        Float
+  auditStatus            String      // PASS, FAIL
+  verifiedBy             String?
+  createdAt              DateTime    @default(now())
+
+  report                 RoadReport  @relation(fields: [reportId], references: [id])
+}
+
+model Notification {
+  id          String      @id @default(uuid())
+  recipientId String
+  reportId    String?
+  type        String      // NEW_REPORT, STATUS_UPDATE, POINTS_AWARDED, etc.
+  title       String
+  message     String
+  isRead      Boolean     @default(false)
+  createdAt   DateTime    @default(now())
+
+  recipient   User        @relation(fields: [recipientId], references: [id])
+  report      RoadReport? @relation(fields: [reportId], references: [id])
+}
+
+model Upvote {
+  id          String      @id @default(uuid())
+  reportId    String
+  userId      String
+  createdAt   DateTime    @default(now())
+
+  report      RoadReport  @relation(fields: [reportId], references: [id])
+  user        User        @relation(fields: [userId], references: [id])
+
+  @@unique([reportId, userId])
+}
+
+model CivicPointTransaction {
+  id          String      @id @default(uuid())
+  userId      String
+  reportId    String?
+  points      Int
+  reason      String
+  createdAt   DateTime    @default(now())
+
+  user        User        @relation(fields: [userId], references: [id])
+  report      RoadReport? @relation(fields: [reportId], references: [id])
+}
+
+model KnowledgeDocument {
+  id          String      @id @default(uuid())
+  title       String
+  content     String
+  createdAt   DateTime    @default(now())
+}
