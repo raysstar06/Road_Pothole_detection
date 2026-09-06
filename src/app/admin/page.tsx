@@ -43,7 +43,9 @@ export default async function AdminDashboard() {
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold tracking-tight text-slate-900">Municipal Command Center</h1>
         <div className="flex gap-4">
-          <Button variant="outline">Generate Report</Button>
+          <a href="/api/admin/export" download>
+            <Button variant="outline">Export CSV Report</Button>
+          </a>
         </div>
       </div>
 

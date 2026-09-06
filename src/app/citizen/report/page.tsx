@@ -42,12 +42,31 @@ export default function ReportDefectPage() {
     if ("geolocation" in navigator) {
       navigator.geolocation.getCurrentPosition(
         async (position) => {
-          setLatitude(position.coords.latitude)
-          setLongitude(position.coords.longitude)
-          
-          // Reverse geocoding mock (would normally use Google Maps or Mapbox API)
-          setAddress(`${position.coords.latitude.toFixed(4)}, ${position.coords.longitude.toFixed(4)}`)
-          setIsLocating(false)
+          const lat = position.coords.latitude
+          const lon = position.coords.longitude
+          setLatitude(lat)
+          setLongitude(lon)
+
+          try {
+            const res = await fetch(
+              `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json`,
+              {
+                headers: {
+                  "Accept-Language": "en",
+                },
+              }
+            )
+            if (res.ok) {
+              const data = await res.json()
+              setAddress(data.display_name || `${lat.toFixed(5)}, ${lon.toFixed(5)}`)
+            } else {
+              setAddress(`${lat.toFixed(5)}, ${lon.toFixed(5)}`)
+            }
+          } catch {
+            setAddress(`${lat.toFixed(5)}, ${lon.toFixed(5)}`)
+          } finally {
+            setIsLocating(false)
+          }
         },
         (error) => {
           console.error("Error getting location:", error)
@@ -190,16 +209,28 @@ export default function ReportDefectPage() {
                 <MapPin className={`w-6 h-6 ${latitude ? 'text-green-500' : 'text-slate-400'}`} />
                 <div className="flex-1">
                   <p className="font-medium text-sm">
-                    {isLocating ? 'Acquiring GPS signal...' : (latitude ? 'Location detected' : 'Location required')}
+                    {isLocating ? 'Acquiring GPS & reverse geocoding...' : (latitude ? 'Location detected' : 'Location required')}
                   </p>
-                  <p className="text-xs text-slate-500">{address}</p>
+                  <p className="text-xs text-slate-500 line-clamp-2">{address}</p>
                 </div>
-                {!latitude && !isLocating && (
+                {!isLocating && (
                   <Button type="button" variant="outline" size="sm" onClick={getLocation}>
-                    Get Location
+                    {latitude ? 'Update GPS' : 'Get Location'}
                   </Button>
                 )}
               </div>
+              {latitude && (
+                <div>
+                  <Label htmlFor="address-refine" className="text-xs text-slate-500">Refine Address (optional)</Label>
+                  <Input
+                    id="address-refine"
+                    value={address}
+                    onChange={(e) => setAddress(e.target.value)}
+                    placeholder="Enter street address or landmarks"
+                    className="mt-1 text-sm"
+                  />
+                </div>
+              )}
             </div>
 
             {/* Step 3: Description */}

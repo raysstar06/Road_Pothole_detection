@@ -105,7 +105,8 @@ export async function submitReportAction(formData: FormData) {
     detectionResult.confidence, 
     boundingBoxCoverage / 100, 
     duplicateCount, 
-    0 // Age is 0 for new report
+    0, // Age is 0 for new report
+    detectionResult.severity
   )
 
   await prisma.roadReport.update({

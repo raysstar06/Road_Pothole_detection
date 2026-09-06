@@ -7,15 +7,20 @@ import { Badge } from "@/components/ui/badge"
 import AdminReportActions from "@/components/AdminReportActions"
 import Link from "next/link"
 
-export default async function AdminReportPage({ params }: { params: { id: string } }) {
+export default async function AdminReportPage({
+  params,
+}: {
+  params: Promise<{ id: string }> | { id: string }
+}) {
   const session = await getServerSession(authOptions)
 
   if (!session || session.user.role !== 'ADMIN') {
     redirect('/login')
   }
 
+  const resolvedParams = await params
   const report = await prisma.roadReport.findUnique({
-    where: { id: params.id },
+    where: { id: resolvedParams.id },
     include: {
       citizen: true,
       detection: true,

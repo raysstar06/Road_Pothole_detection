@@ -32,9 +32,14 @@ export function Header() {
               </Button>
             </>
           ) : (
-            <Link href="/login">
-              <Button>Login</Button>
-            </Link>
+            <div className="flex items-center space-x-2">
+              <Link href="/login">
+                <Button variant="ghost">Login</Button>
+              </Link>
+              <Link href="/register">
+                <Button className="bg-blue-600 hover:bg-blue-700">Sign Up</Button>
+              </Link>
+            </div>
           )}
         </nav>
       </div>

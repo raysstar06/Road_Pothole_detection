@@ -65,7 +65,9 @@ export default async function CitizenDashboard() {
       <div className="space-y-4">
         <div className="flex items-center justify-between">
           <h2 className="text-2xl font-bold">Your Recent Reports</h2>
-          <Button variant="ghost" className="text-blue-600">View All</Button>
+          <Link href="/citizen/reports">
+            <Button variant="ghost" className="text-blue-600 hover:text-blue-700">View All</Button>
+          </Link>
         </div>
 
         {user.reports.length === 0 ? (
@@ -78,40 +80,42 @@ export default async function CitizenDashboard() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {user.reports.map(report => (
-              <Card key={report.id} className="overflow-hidden hover:shadow-md transition-shadow">
-                <div className="h-40 bg-slate-200 relative">
-                  {report.imageUrl && (
-                    <img src={report.imageUrl} alt="Defect" className="w-full h-full object-cover" />
-                  )}
-                  <div className="absolute top-3 right-3">
-                    <Badge variant="secondary" className="bg-white/90 backdrop-blur-sm text-slate-900">
-                      {report.status.replace(/_/g, ' ')}
-                    </Badge>
-                  </div>
-                </div>
-                <CardHeader className="p-4 pb-2">
-                  <CardTitle className="text-lg line-clamp-1">{report.address || 'Unknown Location'}</CardTitle>
-                  <CardDescription className="text-xs">
-                    {new Date(report.createdAt).toLocaleDateString()} • {report.ticketId}
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="p-4 pt-0">
-                  <p className="text-sm text-slate-600 line-clamp-2 mt-2">
-                    {report.description || 'No description provided.'}
-                  </p>
-                  {report.priorityLevel && (
-                    <div className="mt-4 flex items-center justify-between">
-                      <span className="text-xs font-medium text-slate-500">Priority</span>
-                      <Badge variant={
-                        report.priorityLevel === 'HIGH' ? 'destructive' :
-                        report.priorityLevel === 'MODERATE' ? 'default' : 'secondary'
-                      }>
-                        {report.priorityLevel}
+              <Link key={report.id} href={`/citizen/reports/${report.id}`} className="group">
+                <Card className="overflow-hidden hover:shadow-md transition-shadow h-full">
+                  <div className="h-40 bg-slate-200 relative overflow-hidden">
+                    {report.imageUrl && (
+                      <img src={report.imageUrl} alt="Defect" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                    )}
+                    <div className="absolute top-3 right-3">
+                      <Badge variant="secondary" className="bg-white/90 backdrop-blur-sm text-slate-900">
+                        {report.status.replace(/_/g, ' ')}
                       </Badge>
                     </div>
-                  )}
-                </CardContent>
-              </Card>
+                  </div>
+                  <CardHeader className="p-4 pb-2">
+                    <CardTitle className="text-lg line-clamp-1 group-hover:text-blue-600 transition-colors">{report.address || 'Unknown Location'}</CardTitle>
+                    <CardDescription className="text-xs">
+                      {new Date(report.createdAt).toLocaleDateString()} • {report.ticketId}
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="p-4 pt-0">
+                    <p className="text-sm text-slate-600 line-clamp-2 mt-2">
+                      {report.description || 'No description provided.'}
+                    </p>
+                    {report.priorityLevel && (
+                      <div className="mt-4 flex items-center justify-between">
+                        <span className="text-xs font-medium text-slate-500">Priority</span>
+                        <Badge variant={
+                          report.priorityLevel === 'HIGH' ? 'destructive' :
+                          report.priorityLevel === 'MODERATE' ? 'default' : 'secondary'
+                        }>
+                          {report.priorityLevel}
+                        </Badge>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              </Link>
             ))}
           </div>
         )}
