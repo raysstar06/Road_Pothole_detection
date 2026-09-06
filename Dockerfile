@@ -1,6 +1,9 @@
-FROM node:20-alpine AS base
+FROM node:20-slim AS base
 
 WORKDIR /app
+
+# Install openssl and certificates required by Prisma schema engine
+RUN apt-get update -y && apt-get install -y openssl ca-certificates && rm -rf /var/lib/apt/lists/*
 
 COPY package*.json ./
 COPY prisma ./prisma/
